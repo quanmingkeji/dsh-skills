@@ -14,13 +14,13 @@ whenToUse: |-
 - 用户说旧会话/记忆打不开、历史丢失、会话记录损坏
 
 ## 背景（DSH 会话存储格式）
-- 日志位置：`C:\Users\Administrator\.dsh\sessions\<规范化cwd目录>\<session-id>\session.jsonl.zstd`
+- 日志位置：`%USERPROFILE%\.dsh\sessions\<规范化cwd目录>\<session-id>\session.jsonl.zstd`（Linux/macOS 为 `~/.dsh/sessions/...`）
 - 物理格式：多个带校验和的 zstd 帧直接拼接；**首帧 = 恰好一行 header**（`{"type":"session","id":...,"cwd":...}`）；其余帧 = 事件行（普通事件行带 `seq`，或打包行 `{"type":"text-chunks|reasoning-chunks|tool-call-chunks","seq0":N,"data":{"texts"/"args":[...]}}`，成员数即事件数，seq 为 seq0..seq0+n-1）
 - 后端 load 校验：帧完整+校验和通过；header id 必须等于所在目录名；解码后 seq 必须 0..N-1 连续，有空洞即整体拒绝
 - 损坏成因：同一会话被多个写入者并发打开，持有旧游标的过期写入者把与已提交事件 **seq 重叠** 的批次追加到文件尾（物理上帧都完整、尾部自洽，但整体 seq 不连续）
 
 ## 修复流程（按顺序执行）
-1. **全量扫描定位**：`node scripts\scan-all.mjs "C:\Users\Administrator\.dsh\sessions"` → 列出所有损坏日志及空洞位置
+1. **全量扫描定位**：`node scripts\scan-all.mjs "%USERPROFILE%\.dsh\sessions"` → 列出所有损坏日志及空洞位置
 2. **细看空洞上下文**：`node scripts\analyze-gaps.mjs <日志文件>` → 打印每个空洞 ±10 行的 seq/类型
 3. **判定要删除的"过期写入者"事件块**：
    - **单空洞重叠型**（典型）：空洞点 `got < expected`。空洞点之前 A 时间线的最后 `expected-got` 个事件是过期尾巴（通常以 `turn/end` + `session/end-seed` 收尾）；空洞点之后 B 从 `got` 继续且更长/更新。→ 删除 A 的那 `expected-got` 个事件，保留 B 完整尾部（删除后 seq 天然连续，无需重编号）
@@ -34,8 +34,8 @@ whenToUse: |-
 - 先备份后修改（脚本自动做）；**绝不重编号 seq、绝不伪造缺失事件**，只删重叠/过期时间线
 - 修复前确认文件 mtime 已停止变化（该会话不在活跃写入）；正在活跃写入的日志不要动
 - 校验必须全绿才算完成；修复失败时从 `backup\` 恢复并重新分析
-- Node 在 `C:\Program Files\nodejs\node.exe`（≥22，内置 zstd）；脚本为 ESM（.mjs），直接用 `node` 运行
-- 本技能目录：`C:\Users\Administrator\.agents\skills\session-log-repair\`
+- Node ≥ 22（内置 zstd）；脚本为 ESM（.mjs），直接用 `node` 运行
+- 本技能目录：`%USERPROFILE%\.agents\skills\session-log-repair\`
 
 ## 已修复案例（2026-08-17）
 - `session-9403401a`：删除 18 个重叠事件（过期尾巴 80261..80278），保留新延续

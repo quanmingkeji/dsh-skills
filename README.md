@@ -1,7 +1,7 @@
 # dsh-skills
 
 DSH（DeepSeek Harness）本机运维诊断技能集。每个子目录是一个独立技能（SKILL.md + 可执行脚本），
-复制到本地技能目录 `C:\Users\Administrator\.agents\skills\` 后即可被会话自动发现加载。
+复制到本地技能目录 `%USERPROFILE%\.agents\skills\`（Linux/macOS 为 `~/.agents/skills/`）后即可被会话自动发现加载。
 
 ## 技能列表
 
@@ -23,8 +23,8 @@ DSH（DeepSeek Harness）本机运维诊断技能集。每个子目录是一个�
 
 ## 安装
 ```
-xcopy /E /I dsh-web-healthcheck C:\Users\Administrator\.agents\skills\dsh-web-healthcheck
-xcopy /E /I session-log-repair   C:\Users\Administrator\.agents\skills\session-log-repair
+xcopy /E /I dsh-web-healthcheck %USERPROFILE%\.agents\skills\dsh-web-healthcheck
+xcopy /E /I session-log-repair   %USERPROFILE%\.agents\skills\session-log-repair
 ```
 
 ## 安全说明

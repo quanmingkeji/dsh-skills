@@ -39,7 +39,7 @@ whenToUse: |-
    - 页面/资源失败 → 查服务进程与端口：`Get-NetTCPConnection -LocalPort 3080`；
      多个 node 实例并存 = 隐患（见安全规则）
    - 会话相关失败 → 用 `session-log-repair` 技能的 `scan-all.mjs` 扫描
-     `C:\Users\Administrator\.dsh\sessions` 是否有日志损坏
+     `%USERPROFILE%\.dsh\sessions` 是否有日志损坏
    - WS 失败但 HTTP 正常 → 查事件通道注册或反向代理配置
    - 自检全绿但仍异常 → 回到第 2 条，浏览器侧排查
 4. **结论规则**：先证据后断言。每一层都要有实测输出支撑（HTTP 状态码、RPC 响应、WS 帧），
